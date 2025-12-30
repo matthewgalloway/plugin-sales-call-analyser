@@ -46,7 +46,7 @@ export default defineConfig({
   },
   base:
     process.env.MODE === 'production'
-      ? '/plugins/vue-starter-kit/resource/vue-starter-kit/dist/'
+      ? '/plugins/nbm-analysis/resource/nbm-analysis-ui/dist/'
       : '/',
 
 })

@@ -11,7 +11,9 @@
       "Bash(pip install:*)",
       "Bash(DATAIKU_LLM_ID=test-llm FLASK_LOG_LEVEL=debug python3:*)",
       "Bash(FLASK_ENV=development FLASK_LOG_LEVEL=debug python3:*)",
-      "Bash(npm run dev)"
+      "Bash(npm run dev)",
+      "Bash(cat:*)",
+      "Bash(MODE=production npm run build:*)"
     ]
   }
 }
