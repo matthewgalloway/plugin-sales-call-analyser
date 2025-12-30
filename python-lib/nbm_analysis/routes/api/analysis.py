@@ -1,8 +1,16 @@
 from flask import Blueprint, request, jsonify, Response
 from datetime import datetime
+import os
 from nbm_analysis.utils.logging_utils import get_logger
-from nbm_analysis.utils.llm_client import SalesAnalysisLLM
 from nbm_analysis.utils.file_processor import FileProcessor
+
+# Use mock client for local development
+if os.getenv('FLASK_ENV') == 'development' or not os.getenv('DATAIKU_LLM_ID'):
+    from nbm_analysis.utils.llm_client_mock import SalesAnalysisLLM
+    logger = get_logger(__name__)
+    logger.info("Using MOCK LLM client for local development")
+else:
+    from nbm_analysis.utils.llm_client import SalesAnalysisLLM
 
 analysis_blueprint = Blueprint("analysis", __name__, url_prefix="/analysis")
 logger = get_logger(__name__)
