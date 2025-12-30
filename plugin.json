@@ -9,7 +9,7 @@
         "label": "NBM Analysis",
         // description: longer string to help end users understand what this plugin does
         "description": "AI-powered sales call analysis using 3 Whys and MEDDIC frameworks",
-        "author": "Chris Olen",
+        "author": "Matthew Galloway",
         // icon: complete list here at https://fontawesome.com/v3.2.1/icons/
         "icon": "fas fa-microphone-alt",
         // List of tags for filtering the list of plugins
