@@ -21,6 +21,13 @@
       "mandatory": true
     },
     {
+      "name": "results_dataset",
+      "label": "Results Dataset",
+      "type": "DATASET",
+      "description": "Dataset to log all analysis results (will be created if doesn't exist)",
+      "mandatory": false
+    },
+    {
       "name": "log_level",
       "label": "Log Level",
       "type": "SELECT",

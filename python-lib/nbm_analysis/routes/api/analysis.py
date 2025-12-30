@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 from nbm_analysis.utils.logging_utils import get_logger
 from nbm_analysis.utils.file_processor import FileProcessor
+from nbm_analysis.utils.dataset_logger import DatasetLogger
 
 # Use mock client for local development
 if os.getenv('FLASK_ENV') == 'development' or not os.getenv('DATAIKU_LLM_ID'):
@@ -14,6 +15,9 @@ else:
 
 analysis_blueprint = Blueprint("analysis", __name__, url_prefix="/analysis")
 logger = get_logger(__name__)
+
+# Initialize dataset logger
+dataset_logger = DatasetLogger(os.getenv('RESULTS_DATASET'))
 
 
 @analysis_blueprint.route("/analyze", methods=["POST"])
@@ -59,6 +63,17 @@ def analyze_transcript() -> Response:
         processing_time = (datetime.now() - start_time).total_seconds()
         logger.info(f"Analysis completed in {processing_time:.2f}s")
 
+        # Log to dataset if configured
+        dataset_logger.log_analysis(
+            transcript_source=file.filename,
+            evidence_registry=evidence_data.get("evidence_registry", {}),
+            three_whys=analysis_data.get("three_whys", {}),
+            meddic=analysis_data.get("meddic", {}),
+            processing_time_seconds=processing_time,
+            is_sample=False,
+            llm_id=os.getenv('DATAIKU_LLM_ID')
+        )
+
         # Combine results
         result = {**evidence_data, **analysis_data, "is_sample": False}
         return jsonify(result)
@@ -98,6 +113,17 @@ def analyze_sample() -> Response:
         # Log successful analysis
         processing_time = (datetime.now() - start_time).total_seconds()
         logger.info(f"Sample analysis completed in {processing_time:.2f}s")
+
+        # Log to dataset if configured
+        dataset_logger.log_analysis(
+            transcript_source="sample_transcript",
+            evidence_registry=evidence_data.get("evidence_registry", {}),
+            three_whys=analysis_data.get("three_whys", {}),
+            meddic=analysis_data.get("meddic", {}),
+            processing_time_seconds=processing_time,
+            is_sample=True,
+            llm_id=os.getenv('DATAIKU_LLM_ID')
+        )
 
         # Combine results and add sample indicator
         result = {**evidence_data, **analysis_data, "is_sample": True}

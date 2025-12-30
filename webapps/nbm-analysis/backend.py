@@ -15,6 +15,10 @@ os.environ["FLASK_LOG_LEVEL"] = log_level
 llm_id = get_webapp_config()["llm_id"]
 os.environ["DATAIKU_LLM_ID"] = llm_id
 
+# get results dataset from webapp config (optional)
+results_dataset = get_webapp_config().get("results_dataset", "")
+os.environ["RESULTS_DATASET"] = results_dataset
+
 from nbm_analysis.utils.logging_utils import get_logger
 from nbm_analysis.app_setup import create_app
 
