@@ -128,21 +128,34 @@ class FileProcessor:
         """
         try:
             # Try multiple possible locations
+            # __file__ points to this utils/file_processor.py
+            # So ../../sample_transcript.txt goes up to nbm_analysis/sample_transcript.txt
             possible_paths = [
+                # Relative to the utils directory (most reliable in Dataiku)
+                os.path.join(os.path.dirname(__file__), '../sample_transcript.txt'),
+                # Relative to nbm_analysis directory
+                os.path.join(os.path.dirname(__file__), '../../sample_transcript.txt'),
+                # In current working directory (local dev)
                 'sample_transcript.txt',
                 'sales-call-analyzer/sample_transcript.txt',
-                os.path.join(os.path.dirname(__file__), '../../sample_transcript.txt'),
-                os.path.join(os.getcwd(), 'sample_transcript.txt')
+                os.path.join(os.getcwd(), 'sample_transcript.txt'),
+                # Absolute path in Dataiku
+                './python-lib/nbm_analysis/sample_transcript.txt'
             ]
 
             for path in possible_paths:
-                if os.path.exists(path):
-                    with open(path, 'r', encoding='utf-8') as f:
+                abs_path = os.path.abspath(path)
+                if os.path.exists(abs_path):
+                    with open(abs_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                        logger.info(f"Sample transcript loaded from: {path}")
+                        logger.info(f"Sample transcript loaded from: {abs_path}")
                         return content
 
+            # Log all attempted paths for debugging
             logger.error("sample_transcript.txt not found in any expected location")
+            logger.error(f"Tried paths: {[os.path.abspath(p) for p in possible_paths]}")
+            logger.error(f"Current working directory: {os.getcwd()}")
+            logger.error(f"__file__ directory: {os.path.dirname(__file__)}")
             return None
 
         except Exception as e:
