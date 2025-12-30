@@ -1,0 +1,21 @@
+{
+    // Plugin identifiers are globally unique and only contain A-Za-z0-9_-
+    "id": "nbm-analysis",
+    // It is highly recommended to use Semantic Versioning
+    "version": "1.0.0",
+    // Meta data for display purposes:
+    "meta": {
+        // label: name of the plugin as displayed, should be short
+        "label": "NBM Analysis",
+        // description: longer string to help end users understand what this plugin does
+        "description": "AI-powered sales call analysis using 3 Whys and MEDDIC frameworks",
+        "author": "Chris Olen",
+        // icon: complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "fas fa-microphone-alt",
+        // List of tags for filtering the list of plugins
+        "tags": ["sales", "ai", "analysis"],
+        // URL where the user can learn more about the plugin
+        "url": "",
+        "licenseInfo": "Apache Software License"
+    }
+}

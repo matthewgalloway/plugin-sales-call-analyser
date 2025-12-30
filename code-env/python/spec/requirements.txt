@@ -1,0 +1,10 @@
+pandas
+flask
+Flask-Cors
+flask-socketio
+sqlalchemy
+mypy
+pytest
+dataiku-api-client
+python-dotenv
+python-docx

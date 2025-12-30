@@ -1,0 +1,54 @@
+local-debug/data/**
+
+# VSCode
+*.vscode
+
+# Other
+*.DS_Store
+
+# SQLite
+*.sqlite
+
+# SCSS -> CSS Map
+*.map
+
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Jupyter notebooks
+*.ipynb_checkpoints
+*.ipynb
+
+# Distribution / packaging
+.venv
+**/bin/
+**/build/
+**/develop-eggs/
+**/eggs/
+**/lib/
+**/lib64/
+**/parts/
+**/sdist/
+**/var/
+*.egg-info/
+*.installed.cfg
+*.egg
+
+
+# Installer logs
+**/pip-log.txt
+**/pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+*.tox/
+*.coverage
+*.cache
+**/nosetests.xml
+**/coverage.xml
+
+# mypy
+*.mypy_cache/

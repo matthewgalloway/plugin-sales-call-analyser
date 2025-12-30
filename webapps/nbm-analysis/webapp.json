@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "label": "NBM Analysis",
+    "description": "AI-powered sales call analysis using 3 Whys and MEDDIC frameworks",
+    "icon": "fas fa-microphone-alt"
+  },
+  "baseType": "STANDARD",
+  "enableJavascriptModules": "true",
+  "backendAPIAccessEnabled": true,
+  "hasBackend": "true",
+  "noJSSecurity": "true",
+  "standardWebAppLibraries": [
+    "dataiku"
+  ],
+  "params": [
+    {
+      "name": "llm_id",
+      "label": "LLM ID",
+      "type": "STRING",
+      "description": "The ID of the Dataiku LLM to use for analysis (e.g., 'my-claude-llm')",
+      "mandatory": true
+    },
+    {
+      "name": "log_level",
+      "label": "Log Level",
+      "type": "SELECT",
+      "selectChoices": [
+        {
+          "value": "DEBUG",
+          "label": "DEBUG"
+        },
+        {
+          "value": "INFO",
+          "label": "INFO"
+        }
+      ],
+      "defaultValue": "INFO",
+      "mandatory": true
+    }
+  ],
+  "roles": []
+}
