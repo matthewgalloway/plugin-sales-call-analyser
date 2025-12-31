@@ -178,7 +178,11 @@ class DatasetLogger:
 
             # Write to dataset
             logger.info(f"Getting dataset handle for: {self.dataset_name}")
-            dataset = dataiku.Dataset(self.dataset_name)
+            dataset = dataiku.Dataset(self.dataset_name, ignore_flow=True)
+
+            # Enable append mode to avoid overwriting
+            dataset.spec_item["appendMode"] = True
+            logger.info("Append mode enabled for dataset")
 
             # Create DataFrame
             df_new = pd.DataFrame([row])
@@ -195,7 +199,7 @@ class DatasetLogger:
 
                 # Dataset exists, append to it
                 logger.info("Appending to existing dataset...")
-                dataset.write_dataframe(df_new, infer_schema=False)
+                dataset.write_with_schema(df_new)
                 logger.info("Successfully appended to existing dataset")
 
             except Exception as read_err:
