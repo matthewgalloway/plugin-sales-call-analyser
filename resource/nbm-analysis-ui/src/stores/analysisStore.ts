@@ -116,6 +116,58 @@ export const useAnalysisStore = defineStore('analysis', () => {
     }
   }
 
+  async function analyzeText(text: string) {
+    isLoading.value = true
+    error.value = null
+    progressMessage.value = 'Analyzing your text...'
+
+    try {
+      let evidenceData: any = null
+      let analysisData: any = null
+
+      await analysisAPI.analyzeTextStreamed(text, (update) => {
+        if (update.stage === 'error') {
+          error.value = update.error || 'Text analysis failed'
+          return
+        }
+
+        if (update.stage === 'evidence') {
+          if (update.status === 'started') {
+            progressMessage.value = "Extracting evidence from your text... Let's face it, this is still faster than you watching the whole discovery call, so be patient 😉"
+          } else if (update.status === 'complete' && update.data) {
+            evidenceData = update.data
+            progressMessage.value = 'Evidence extracted! Analyzing frameworks...'
+          }
+        } else if (update.stage === 'analysis') {
+          if (update.status === 'started') {
+            progressMessage.value = 'Analyzing Three Whys and MEDDIC frameworks... Almost there!'
+          } else if (update.status === 'complete' && update.data) {
+            analysisData = update.data
+            progressMessage.value = 'Analysis complete!'
+          }
+        }
+
+        // When complete, combine the results
+        if (update.complete && evidenceData && analysisData) {
+          currentAnalysis.value = {
+            ...evidenceData,
+            ...analysisData,
+            is_sample: false,
+          }
+          currentTab.value = 'three-whys'
+        }
+      })
+
+      return currentAnalysis.value
+    } catch (err: any) {
+      error.value = err.message || 'Text analysis failed. Please try again.'
+      throw err
+    } finally {
+      isLoading.value = false
+      progressMessage.value = ''
+    }
+  }
+
   async function generateDealReview() {
     if (!currentAnalysis.value) {
       error.value = 'No analysis available'
@@ -178,6 +230,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
     // Actions
     analyzeFile,
+    analyzeText,
     analyzeSample,
     generateDealReview,
     setTab,

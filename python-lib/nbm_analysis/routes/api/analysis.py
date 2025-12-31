@@ -281,3 +281,123 @@ def analyze_sample_stream() -> Response:
             yield f"data: {json.dumps({'stage': 'error', 'error': str(e)})}\n\n"
 
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+
+@analysis_blueprint.route("/analyze-text", methods=["POST"])
+def analyze_text() -> Response:
+    """API endpoint to analyze pasted text transcript"""
+    try:
+        # Get JSON data
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({"error": "No text provided"}), 400
+
+        content = data['text'].strip()
+
+        # Validate content length
+        if len(content) < 50:
+            return jsonify({"error": "Text too short. Please provide at least 50 characters."}), 400
+
+        if len(content) > 50000:
+            return jsonify({"error": "Text too long. Maximum 50,000 characters allowed."}), 400
+
+        # Create analysis
+        start_time = datetime.now()
+        llm_client = SalesAnalysisLLM()
+
+        # Create evidence registry
+        evidence_data = llm_client.create_evidence_registry(content)
+        if "error" in evidence_data:
+            logger.error(f"Evidence registry failed: {evidence_data['error']}")
+            return jsonify({"error": f"Analysis failed: {evidence_data['error']}"}), 500
+
+        # Create analysis
+        analysis_data = llm_client.create_analysis(evidence_data)
+        if "error" in analysis_data:
+            logger.error(f"Analysis failed: {analysis_data['error']}")
+            return jsonify({"error": f"Analysis failed: {analysis_data['error']}"}), 500
+
+        # Log successful analysis
+        processing_time = (datetime.now() - start_time).total_seconds()
+        logger.info(f"Text analysis completed in {processing_time:.2f}s")
+
+        # Log to dataset if configured
+        dataset_logger.log_analysis(
+            transcript_source="pasted_text",
+            evidence_registry=evidence_data.get("evidence_registry", {}),
+            sales_whys=analysis_data.get("sales_whys", {}),
+            business_context=analysis_data.get("business_context", {}),
+            meddic=analysis_data.get("meddic", {}),
+            processing_time_seconds=processing_time,
+            is_sample=False,
+            llm_id=os.getenv('DATAIKU_LLM_ID')
+        )
+
+        # Combine results
+        result = {**evidence_data, **analysis_data, "is_sample": False}
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Unexpected error in text analysis: {str(e)}")
+        return jsonify({"error": "Analysis failed due to an unexpected error. Please try again."}), 500
+
+
+@analysis_blueprint.route("/analyze-text-stream", methods=["POST"])
+def analyze_text_stream() -> Response:
+    """API endpoint to analyze pasted text with streaming updates"""
+
+    def generate():
+        try:
+            # Get JSON data
+            data = request.get_json()
+            if not data or 'text' not in data:
+                yield f"data: {json.dumps({'stage': 'error', 'error': 'No text provided', 'complete': True})}\n\n"
+                return
+
+            content = data['text'].strip()
+
+            # Validate content length
+            if len(content) < 50:
+                yield f"data: {json.dumps({'stage': 'error', 'error': 'Text too short. Please provide at least 50 characters.', 'complete': True})}\n\n"
+                return
+
+            if len(content) > 50000:
+                yield f"data: {json.dumps({'stage': 'error', 'error': 'Text too long. Maximum 50,000 characters allowed.', 'complete': True})}\n\n"
+                return
+
+            # Stream analysis
+            start_time = datetime.now()
+            llm_client = SalesAnalysisLLM()
+
+            evidence_data = None
+            analysis_data = None
+
+            for update in llm_client.create_analysis_streamed(content):
+                # Send update to client
+                yield f"data: {json.dumps(update)}\n\n"
+
+                # Store data for logging
+                if update.get("stage") == "evidence" and update.get("status") == "complete":
+                    evidence_data = update.get("data", {})
+                elif update.get("stage") == "analysis" and update.get("status") == "complete":
+                    analysis_data = update.get("data", {})
+
+            # Log to dataset if we got complete data
+            if evidence_data and analysis_data:
+                processing_time = (datetime.now() - start_time).total_seconds()
+                dataset_logger.log_analysis(
+                    transcript_source="pasted_text",
+                    evidence_registry=evidence_data.get("evidence_registry", {}),
+                    sales_whys=analysis_data.get("sales_whys", {}),
+                    business_context=analysis_data.get("business_context", {}),
+                    meddic=analysis_data.get("meddic", {}),
+                    processing_time_seconds=processing_time,
+                    is_sample=False,
+                    llm_id=os.getenv('DATAIKU_LLM_ID')
+                )
+
+        except Exception as e:
+            logger.error(f"Unexpected error in text streaming analysis: {str(e)}")
+            yield f"data: {json.dumps({'stage': 'error', 'error': str(e), 'complete': True})}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
