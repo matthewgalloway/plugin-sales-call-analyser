@@ -69,34 +69,45 @@ export class AnalysisAPI {
     })
 
     if (!response.ok || !response.body) {
-      throw new Error('Stream request failed')
+      throw new Error(`Stream request failed: ${response.status} ${response.statusText}`)
     }
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
+    let buffer = ''
 
     try {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || ''
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = line.substring(6)
-            if (data.trim()) {
-              const update = JSON.parse(data) as StreamUpdate
-              onUpdate(update)
+            const data = line.substring(6).trim()
+            if (data) {
+              try {
+                const update = JSON.parse(data) as StreamUpdate
+                onUpdate(update)
 
-              if (update.complete) {
-                return
+                if (update.complete) {
+                  return
+                }
+              } catch (parseError) {
+                console.error('Failed to parse SSE data:', data, parseError)
               }
             }
           }
         }
       }
+    } catch (error) {
+      console.error('Stream reading error:', error)
+      throw error
     } finally {
       reader.releaseLock()
     }
@@ -108,34 +119,45 @@ export class AnalysisAPI {
     })
 
     if (!response.ok || !response.body) {
-      throw new Error('Stream request failed')
+      throw new Error(`Stream request failed: ${response.status} ${response.statusText}`)
     }
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
+    let buffer = ''
 
     try {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || ''
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = line.substring(6)
-            if (data.trim()) {
-              const update = JSON.parse(data) as StreamUpdate
-              onUpdate(update)
+            const data = line.substring(6).trim()
+            if (data) {
+              try {
+                const update = JSON.parse(data) as StreamUpdate
+                onUpdate(update)
 
-              if (update.complete) {
-                return
+                if (update.complete) {
+                  return
+                }
+              } catch (parseError) {
+                console.error('Failed to parse SSE data:', data, parseError)
               }
             }
           }
         }
       }
+    } catch (error) {
+      console.error('Stream reading error:', error)
+      throw error
     } finally {
       reader.releaseLock()
     }
