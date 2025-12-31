@@ -13,7 +13,8 @@
       "Bash(FLASK_ENV=development FLASK_LOG_LEVEL=debug python3:*)",
       "Bash(npm run dev)",
       "Bash(cat:*)",
-      "Bash(MODE=production npm run build:*)"
+      "Bash(MODE=production npm run build:*)",
+      "Bash(FLASK_LOG_LEVEL=INFO python3:*)"
     ]
   }
 }

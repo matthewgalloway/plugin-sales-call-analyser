@@ -217,8 +217,25 @@ Create a comprehensive analysis with two frameworks:
 - Implicated Pain: What pain points need solving?
 - Champion: Who supports/advocates for solutions?
 
+CRITICAL WRITING RULES FOR SUMMARIES:
+- Maximum 20 words per summary (strictly enforced - these will be copied to slides)
+- Lead with numbers, metrics, percentages, dollar amounts, and timeframes
+- Use concrete specifics: names, roles, dates, quantities
+- Remove ALL filler words: "the", "a", "is", "are", "has", "have", "will", etc.
+- Use punchy, direct language with action verbs
+- Format: "[Metric/Number] [Action/Event] [Stakeholder/Impact]"
+
+Examples of GOOD summaries (≤20 words):
+- "CEO approved $500K budget, targeting 90% pricing cycle reduction (3 weeks→3 days) by Q2"
+- "12-person manual pricing process causes deal losses; no CRM integration, error-prone workflows"
+- "CFO (economic buyer) allocated $500K; CEO championing initiative; Q1 decision deadline"
+
+Examples of BAD summaries (too wordy):
+- "The company aims to reduce the pricing cycle time by approximately 90% in order to improve competitiveness"
+- "There is a manual pricing process that currently involves around 12 different people across various departments"
+
 For each analysis point:
-- Provide a clear summary
+- Write ultra-concise summary (≤20 words, metrics-first)
 - Reference specific evidence IDs that support your analysis
 - Use evidence that matches the appropriate scope/level for each section
 - If no evidence exists for a section, state "No evidence found"
@@ -232,25 +249,25 @@ Return as JSON:
 {
     "three_whys": {
         "corporate_objectives": {
-            "summary": "analysis summary",
+            "summary": "≤20 word summary with metrics first",
             "evidence_ids": ["E001", "E002"]
         },
         "domain_initiatives": {
-            "summary": "analysis summary",
+            "summary": "≤20 word summary with metrics first",
             "evidence_ids": ["E003"]
         },
         "domain_challenges": {
-            "summary": "analysis summary",
+            "summary": "≤20 word summary with metrics first",
             "evidence_ids": ["E004", "E005"]
         }
     },
     "meddic": {
-        "metrics": {"summary": "analysis summary", "evidence_ids": ["E006"]},
-        "economic_buyer": {"summary": "analysis summary", "evidence_ids": ["E007"]},
-        "decision_process": {"summary": "analysis summary", "evidence_ids": ["E008"]},
-        "decision_criteria": {"summary": "analysis summary", "evidence_ids": ["E009"]},
-        "implicated_pain": {"summary": "analysis summary", "evidence_ids": ["E010"]},
-        "champion": {"summary": "analysis summary", "evidence_ids": ["E011"]}
+        "metrics": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E006"]},
+        "economic_buyer": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E007"]},
+        "decision_process": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E008"]},
+        "decision_criteria": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E009"]},
+        "implicated_pain": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E010"]},
+        "champion": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E011"]}
     }
 }
 """

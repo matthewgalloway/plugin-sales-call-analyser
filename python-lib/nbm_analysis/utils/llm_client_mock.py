@@ -99,41 +99,41 @@ class SalesAnalysisLLM:
         analysis_data = {
             "three_whys": OrderedDict([
                 ("corporate_objectives", {
-                    "summary": "Company aims to reduce pricing cycle time by 90% to improve competitiveness and win more deals. CEO and CFO have allocated $500K budget for pricing transformation initiative.",
+                    "summary": "CEO/CFO allocated $500K budget, targeting 90% pricing cycle reduction (3 weeks→3 days) by Q2",
                     "evidence_ids": ["E001", "E003"]
                 }),
                 ("domain_initiatives", {
-                    "summary": "Operations team is launching a pricing automation project with dedicated resources and Q2 deadline. IT team is evaluating vendor solutions.",
+                    "summary": "Operations launching pricing automation project with Q2 deadline; IT evaluating vendor solutions",
                     "evidence_ids": ["E002"]
                 }),
                 ("domain_challenges", {
-                    "summary": "Current manual process is slow, error-prone, and involves too many stakeholders. Lack of real-time data access and no integration with CRM system.",
+                    "summary": "12-person manual process causes errors, deal losses; no CRM integration or real-time data",
                     "evidence_ids": ["E002"]
                 })
             ]),
             "meddic": {
                 "metrics": {
-                    "summary": "Success measured by: 1) Pricing cycle time reduction from 3 weeks to 3 days, 2) Error rate reduction, 3) Deal close rate improvement",
+                    "summary": "Pricing cycle 3 weeks→3 days, error rate reduction, improved deal close rate",
                     "evidence_ids": ["E001"]
                 },
                 "economic_buyer": {
-                    "summary": "CFO is the economic buyer with $500K approved budget. CEO is also engaged and championing the initiative.",
+                    "summary": "CFO (economic buyer) approved $500K budget; CEO engaged and championing initiative",
                     "evidence_ids": ["E003"]
                 },
                 "decision_process": {
-                    "summary": "Vendor evaluation in progress. Decision committee includes CFO, COO, and Head of Sales. Target decision date: end of Q1.",
+                    "summary": "CFO/COO/Head of Sales decision committee; vendor evaluation in progress; Q1 end deadline",
                     "evidence_ids": []
                 },
                 "decision_criteria": {
-                    "summary": "Key criteria: 1) Speed of implementation, 2) Integration with existing CRM, 3) Ease of use, 4) Vendor support and training",
+                    "summary": "Implementation speed, CRM integration, ease of use, vendor support and training",
                     "evidence_ids": []
                 },
                 "implicated_pain": {
-                    "summary": "Losing deals to faster competitors due to slow pricing turnaround. Sales team frustrated with manual process and errors.",
+                    "summary": "Slow pricing turnaround losing deals to faster competitors; sales team frustrated by errors",
                     "evidence_ids": ["E001", "E002"]
                 },
                 "champion": {
-                    "summary": "Head of Sales is advocating for solution. Has strong relationship with CEO and demonstrated pain points.",
+                    "summary": "Head of Sales advocating for solution; strong CEO relationship, demonstrated pain points",
                     "evidence_ids": []
                 }
             }
