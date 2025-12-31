@@ -68,7 +68,8 @@ def analyze_transcript() -> Response:
         dataset_logger.log_analysis(
             transcript_source=file.filename,
             evidence_registry=evidence_data.get("evidence_registry", {}),
-            three_whys=analysis_data.get("three_whys", {}),
+            sales_whys=analysis_data.get("sales_whys", {}),
+            business_context=analysis_data.get("business_context", {}),
             meddic=analysis_data.get("meddic", {}),
             processing_time_seconds=processing_time,
             is_sample=False,
@@ -119,7 +120,8 @@ def analyze_sample() -> Response:
         dataset_logger.log_analysis(
             transcript_source="sample_transcript",
             evidence_registry=evidence_data.get("evidence_registry", {}),
-            three_whys=analysis_data.get("three_whys", {}),
+            sales_whys=analysis_data.get("sales_whys", {}),
+            business_context=analysis_data.get("business_context", {}),
             meddic=analysis_data.get("meddic", {}),
             processing_time_seconds=processing_time,
             is_sample=True,
@@ -215,7 +217,8 @@ def analyze_transcript_stream() -> Response:
                 dataset_logger.log_analysis(
                     transcript_source=file.filename,
                     evidence_registry=evidence_data.get("evidence_registry", {}),
-                    three_whys=analysis_data.get("three_whys", {}),
+                    sales_whys=analysis_data.get("sales_whys", {}),
+                    business_context=analysis_data.get("business_context", {}),
                     meddic=analysis_data.get("meddic", {}),
                     processing_time_seconds=processing_time,
                     is_sample=False,
@@ -265,7 +268,8 @@ def analyze_sample_stream() -> Response:
                 dataset_logger.log_analysis(
                     transcript_source="sample_transcript",
                     evidence_registry=evidence_data.get("evidence_registry", {}),
-                    three_whys=analysis_data.get("three_whys", {}),
+                    sales_whys=analysis_data.get("sales_whys", {}),
+                    business_context=analysis_data.get("business_context", {}),
                     meddic=analysis_data.get("meddic", {}),
                     processing_time_seconds=processing_time,
                     is_sample=True,

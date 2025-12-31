@@ -14,7 +14,13 @@ export interface AnalysisSection {
   evidence_ids: string[]
 }
 
-export interface ThreeWhys {
+export interface SalesWhys {
+  why_anything: AnalysisSection
+  why_now: AnalysisSection
+  why_us: AnalysisSection
+}
+
+export interface BusinessContext {
   corporate_objectives: AnalysisSection
   domain_initiatives: AnalysisSection
   domain_challenges: AnalysisSection
@@ -38,7 +44,8 @@ export interface DealReview {
 
 export interface AnalysisResult {
   evidence_registry: EvidenceRegistry
-  three_whys: ThreeWhys
+  sales_whys: SalesWhys
+  business_context: BusinessContext
   meddic: MEDDIC
   is_sample: boolean
   deal_review?: {

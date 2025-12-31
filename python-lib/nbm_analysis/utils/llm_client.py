@@ -183,14 +183,14 @@ Transcript:
             return {"evidence_registry": {}, "error": f"Analysis failed: {str(e)}"}
 
     def create_analysis(self, evidence_registry: Dict[str, Any], user_email: str = None) -> Dict[str, Any]:
-        """Create 3 Whys and MEDDIC analysis using evidence registry
+        """Create sales_whys, business_context, and MEDDIC analysis using evidence registry
 
         Args:
             evidence_registry: The evidence registry dictionary
             user_email: Optional user email for logging
 
         Returns:
-            Dictionary containing three_whys, meddic, and optional error
+            Dictionary containing sales_whys, business_context, meddic, and optional error
         """
         try:
             prompt = """
@@ -199,17 +199,25 @@ You are a sales expert analyzing a call transcript. Use ONLY the evidence provid
 Evidence Registry:
 """ + json.dumps(evidence_registry, indent=2) + """
 
-Create a comprehensive analysis with two frameworks:
+Create a comprehensive analysis with THREE frameworks:
 
-1. Three Whys Framework (HIERARCHICAL - from strategic to operational):
+1. Sales Three Whys (SALES URGENCY FOCUSED):
 
-- Corporate Objectives: C-level strategic goals with executive sponsorship and significant budget (revenue targets, market expansion, compliance mandates). Look for: "CEO wants", "board approved", "company goal", numbers/percentages, annual targets. ONLY use quantitative_data and executive-level direct_quotes evidence.
+- Why Anything? Answer: Why would they buy ANY solution at all? What fundamental business problem exists? Look for: pain points, business impact, status quo problems.
 
-- Domain Initiatives: Department-level projects that support objectives with dedicated teams and timelines. Look for: "we're launching", "team is working on", project names, specific deadlines, allocated resources. ONLY use process_detail and project-related direct_quotes evidence.
+- Why Now? Answer: What URGENT EVENT or TRIGGER makes this purchase imminent? What deadline, regulation, competitive threat, or crisis forces immediate action? Look for: "by Q2", "before year-end", "new regulation effective", "losing market share", "CEO mandate". This MUST have time urgency.
 
-- Domain Challenges: Day-to-day operational challenges blocking progress that we can solve. Look for: "struggling with", "takes too long", "can't integrate", "manual process", current state problems. ONLY use process_detail and operational implied_info evidence.
+- Why Us? Answer: Why choose our company specifically over competitors or building in-house? What unique capability do we have? Look for: "only vendor that", "tried others", "recommendation", unique requirements we meet.
 
-2. MEDDIC Framework:
+2. Business Context (STRATEGIC BUSINESS FOCUSED):
+
+- Corporate Objectives: High-level strategic goals company is pursuing (revenue growth, market expansion, digital transformation). Look for: board-level goals, CEO priorities, annual company objectives.
+
+- Domain Initiatives: Active projects/programs underway to achieve objectives. Look for: named initiatives, project teams, dedicated budgets, launch timelines.
+
+- Domain Challenges: Operational problems blocking initiative progress that solutions can address. Look for: technical blockers, process inefficiencies, resource constraints.
+
+3. MEDDIC Framework:
 - Metrics: What measurable criteria matter to them?
 - Economic Buyer: Who has budget authority?
 - Decision Process: How do they make decisions?
@@ -227,47 +235,51 @@ CRITICAL WRITING RULES FOR SUMMARIES:
 
 Examples of GOOD summaries (≤20 words):
 - "CEO approved $500K budget, targeting 90% pricing cycle reduction (3 weeks→3 days) by Q2"
-- "12-person manual pricing process causes deal losses; no CRM integration, error-prone workflows"
+- "12-person manual process causes deal losses; no CRM integration, error-prone workflows"
 - "CFO (economic buyer) allocated $500K; CEO championing initiative; Q1 decision deadline"
-
-Examples of BAD summaries (too wordy):
-- "The company aims to reduce the pricing cycle time by approximately 90% in order to improve competitiveness"
-- "There is a manual pricing process that currently involves around 12 different people across various departments"
 
 For each analysis point:
 - Write ultra-concise summary (≤20 words, metrics-first)
 - Reference specific evidence IDs that support your analysis
-- Use evidence that matches the appropriate scope/level for each section
 - If no evidence exists for a section, state "No evidence found"
-
-IMPORTANT: Return the three_whys object with keys in this EXACT order:
-1. corporate_objectives (first)
-2. domain_initiatives (second)
-3. domain_challenges (third)
 
 Return as JSON:
 {
-    "three_whys": {
-        "corporate_objectives": {
+    "sales_whys": {
+        "why_anything": {
             "summary": "≤20 word summary with metrics first",
             "evidence_ids": ["E001", "E002"]
         },
-        "domain_initiatives": {
-            "summary": "≤20 word summary with metrics first",
+        "why_now": {
+            "summary": "≤20 word summary with metrics first - MUST include time urgency/deadline",
             "evidence_ids": ["E003"]
         },
-        "domain_challenges": {
+        "why_us": {
             "summary": "≤20 word summary with metrics first",
             "evidence_ids": ["E004", "E005"]
         }
     },
+    "business_context": {
+        "corporate_objectives": {
+            "summary": "≤20 word summary with metrics first",
+            "evidence_ids": ["E006", "E007"]
+        },
+        "domain_initiatives": {
+            "summary": "≤20 word summary with metrics first",
+            "evidence_ids": ["E008"]
+        },
+        "domain_challenges": {
+            "summary": "≤20 word summary with metrics first",
+            "evidence_ids": ["E009", "E010"]
+        }
+    },
     "meddic": {
-        "metrics": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E006"]},
-        "economic_buyer": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E007"]},
-        "decision_process": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E008"]},
-        "decision_criteria": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E009"]},
-        "implicated_pain": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E010"]},
-        "champion": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E011"]}
+        "metrics": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E011"]},
+        "economic_buyer": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E012"]},
+        "decision_process": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E013"]},
+        "decision_criteria": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E014"]},
+        "implicated_pain": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E015"]},
+        "champion": {"summary": "≤20 word summary with metrics first", "evidence_ids": ["E016"]}
     }
 }
 """
@@ -280,22 +292,30 @@ Return as JSON:
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse analysis JSON. Error: {str(e)}")
                 logger.error(f"Problematic JSON (first 500 chars): {cleaned_json[:500]}")
-                return {"three_whys": {}, "meddic": {}, "error": "Analysis failed - please try again"}
+                return {"sales_whys": {}, "business_context": {}, "meddic": {}, "error": "Analysis failed - please try again"}
 
-            # Ensure three_whys is properly ordered using OrderedDict
-            if 'three_whys' in analysis_data:
-                ordered_three_whys = OrderedDict()
-                ordered_three_whys['corporate_objectives'] = analysis_data['three_whys'].get('corporate_objectives', {})
-                ordered_three_whys['domain_initiatives'] = analysis_data['three_whys'].get('domain_initiatives', {})
-                ordered_three_whys['domain_challenges'] = analysis_data['three_whys'].get('domain_challenges', {})
-                analysis_data['three_whys'] = ordered_three_whys
+            # Ensure sales_whys is properly ordered using OrderedDict
+            if 'sales_whys' in analysis_data:
+                ordered_sales_whys = OrderedDict()
+                ordered_sales_whys['why_anything'] = analysis_data['sales_whys'].get('why_anything', {})
+                ordered_sales_whys['why_now'] = analysis_data['sales_whys'].get('why_now', {})
+                ordered_sales_whys['why_us'] = analysis_data['sales_whys'].get('why_us', {})
+                analysis_data['sales_whys'] = ordered_sales_whys
+
+            # Ensure business_context is properly ordered using OrderedDict
+            if 'business_context' in analysis_data:
+                ordered_business = OrderedDict()
+                ordered_business['corporate_objectives'] = analysis_data['business_context'].get('corporate_objectives', {})
+                ordered_business['domain_initiatives'] = analysis_data['business_context'].get('domain_initiatives', {})
+                ordered_business['domain_challenges'] = analysis_data['business_context'].get('domain_challenges', {})
+                analysis_data['business_context'] = ordered_business
 
             logger.info(f"Analysis created for user: {user_email}")
             return analysis_data
 
         except Exception as e:
             logger.error(f"Unexpected error in analysis: {str(e)}")
-            return {"three_whys": {}, "meddic": {}, "error": f"Analysis failed: {str(e)}"}
+            return {"sales_whys": {}, "business_context": {}, "meddic": {}, "error": f"Analysis failed: {str(e)}"}
 
     def create_deal_review(self, evidence_registry: Dict[str, Any], analysis_data: Dict[str, Any], user_email: str = None) -> Dict[str, Any]:
         """Create deal review with stage readiness assessment and next steps

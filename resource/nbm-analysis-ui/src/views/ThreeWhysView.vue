@@ -5,7 +5,7 @@ import EvidenceCard from '@/components/EvidenceCard.vue'
 
 const analysisStore = useAnalysisStore()
 
-const threeWhys = computed(() => analysisStore.currentAnalysis?.three_whys)
+const salesWhys = computed(() => analysisStore.currentAnalysis?.sales_whys)
 const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_registry || {})
 </script>
 
@@ -19,27 +19,27 @@ const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_
         </p>
       </div>
 
-      <div v-if="threeWhys" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Why Anything? / Corporate Objectives -->
+      <div v-if="salesWhys" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Why Anything? -->
         <EvidenceCard
-          title="Why Anything? - Corporate Objectives"
-          :section="threeWhys.corporate_objectives"
+          title="Why Anything?"
+          :section="salesWhys.why_anything"
           :evidence-registry="evidenceRegistry"
           icon="🎯"
         />
 
-        <!-- Why Now? / Domain Initiatives -->
+        <!-- Why Now? -->
         <EvidenceCard
-          title="Why Now? - Domain Initiatives"
-          :section="threeWhys.domain_initiatives"
+          title="Why Now?"
+          :section="salesWhys.why_now"
           :evidence-registry="evidenceRegistry"
           icon="🚀"
         />
 
-        <!-- Why Our Company? / Domain Challenges -->
+        <!-- Why Us? -->
         <EvidenceCard
-          title="Why Our Company? - Domain Challenges"
-          :section="threeWhys.domain_challenges"
+          title="Why Us?"
+          :section="salesWhys.why_us"
           :evidence-registry="evidenceRegistry"
           icon="💡"
         />

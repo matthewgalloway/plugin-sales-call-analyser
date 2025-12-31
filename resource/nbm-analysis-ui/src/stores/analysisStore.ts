@@ -130,7 +130,8 @@ export const useAnalysisStore = defineStore('analysis', () => {
       const dealReview = await analysisAPI.generateDealReview(
         currentAnalysis.value.evidence_registry,
         {
-          three_whys: currentAnalysis.value.three_whys,
+          sales_whys: currentAnalysis.value.sales_whys,
+          business_context: currentAnalysis.value.business_context,
           meddic: currentAnalysis.value.meddic,
         }
       )

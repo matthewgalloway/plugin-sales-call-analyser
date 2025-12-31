@@ -5,7 +5,7 @@ import EvidenceCard from '@/components/EvidenceCard.vue'
 
 const analysisStore = useAnalysisStore()
 
-const threeWhys = computed(() => analysisStore.currentAnalysis?.three_whys)
+const businessContext = computed(() => analysisStore.currentAnalysis?.business_context)
 const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_registry || {})
 </script>
 
@@ -19,11 +19,11 @@ const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_
         </p>
       </div>
 
-      <div v-if="threeWhys" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div v-if="businessContext" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Corporate Objectives -->
         <EvidenceCard
           title="Corporate Objectives"
-          :section="threeWhys.corporate_objectives"
+          :section="businessContext.corporate_objectives"
           :evidence-registry="evidenceRegistry"
           icon="🏢"
         />
@@ -31,7 +31,7 @@ const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_
         <!-- Domain Initiatives -->
         <EvidenceCard
           title="Domain Initiatives"
-          :section="threeWhys.domain_initiatives"
+          :section="businessContext.domain_initiatives"
           :evidence-registry="evidenceRegistry"
           icon="📋"
         />
@@ -39,7 +39,7 @@ const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_
         <!-- Domain Challenges -->
         <EvidenceCard
           title="Domain Challenges"
-          :section="threeWhys.domain_challenges"
+          :section="businessContext.domain_challenges"
           :evidence-registry="evidenceRegistry"
           icon="⚡"
         />

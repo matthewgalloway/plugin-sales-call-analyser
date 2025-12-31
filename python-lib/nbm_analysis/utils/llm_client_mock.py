@@ -97,17 +97,31 @@ class SalesAnalysisLLM:
         logger.info(f"Mock: Creating analysis for user: {user_email}")
 
         analysis_data = {
-            "three_whys": OrderedDict([
+            "sales_whys": OrderedDict([
+                ("why_anything", {
+                    "summary": "Manual 12-person pricing process causes deal losses, errors; losing to faster competitors",
+                    "evidence_ids": ["E001", "E002"]
+                }),
+                ("why_now", {
+                    "summary": "Q2 deadline for pricing transformation; CEO/CFO mandate with $500K budget approval",
+                    "evidence_ids": ["E001", "E003"]
+                }),
+                ("why_us", {
+                    "summary": "Need automation reducing 3 weeks→3 days; CRM integration capability required",
+                    "evidence_ids": ["E001", "E002"]
+                })
+            ]),
+            "business_context": OrderedDict([
                 ("corporate_objectives", {
-                    "summary": "CEO/CFO allocated $500K budget, targeting 90% pricing cycle reduction (3 weeks→3 days) by Q2",
+                    "summary": "CEO/CFO targeting 90% pricing cycle reduction (3 weeks→3 days); $500K budget allocated",
                     "evidence_ids": ["E001", "E003"]
                 }),
                 ("domain_initiatives", {
-                    "summary": "Operations launching pricing automation project with Q2 deadline; IT evaluating vendor solutions",
+                    "summary": "Operations launching pricing automation project Q2; IT evaluating vendor solutions",
                     "evidence_ids": ["E002"]
                 }),
                 ("domain_challenges", {
-                    "summary": "12-person manual process causes errors, deal losses; no CRM integration or real-time data",
+                    "summary": "12-person manual process error-prone; no CRM integration, slow turnaround kills deals",
                     "evidence_ids": ["E002"]
                 })
             ]),

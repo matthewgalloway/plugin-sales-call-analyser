@@ -74,7 +74,8 @@ class DatasetLogger:
         self,
         transcript_source: str,
         evidence_registry: Dict[str, Any],
-        three_whys: Dict[str, Any],
+        sales_whys: Dict[str, Any],
+        business_context: Dict[str, Any],
         meddic: Dict[str, Any],
         processing_time_seconds: float,
         is_sample: bool = False,
@@ -87,7 +88,8 @@ class DatasetLogger:
         Args:
             transcript_source: Source of transcript (filename or "sample")
             evidence_registry: The evidence registry dict
-            three_whys: The three whys analysis dict
+            sales_whys: The sales whys analysis dict (why_anything, why_now, why_us)
+            business_context: The business context dict (corporate_objectives, domain_initiatives, domain_challenges)
             meddic: The MEDDIC analysis dict
             processing_time_seconds: Time taken to analyze
             is_sample: Whether this was the sample transcript
@@ -119,9 +121,15 @@ class DatasetLogger:
                 if field.get("summary", "").lower() != "no evidence found" and len(field.get("summary", "")) > 0
             ])
 
-            # Check Three Whys completeness
-            three_whys_fields_complete = sum([
-                1 for field in three_whys.values()
+            # Check Sales Whys completeness
+            sales_whys_fields_complete = sum([
+                1 for field in sales_whys.values()
+                if field.get("summary", "").lower() != "no evidence found" and len(field.get("summary", "")) > 0
+            ])
+
+            # Check Business Context completeness
+            business_context_fields_complete = sum([
+                1 for field in business_context.values()
                 if field.get("summary", "").lower() != "no evidence found" and len(field.get("summary", "")) > 0
             ])
 
@@ -134,11 +142,15 @@ class DatasetLogger:
                 "llm_id": llm_id or "unknown",
                 "processing_time_seconds": processing_time_seconds,
                 "num_evidence_items": num_evidence,
-                "three_whys_completeness": three_whys_fields_complete,
+                "sales_whys_completeness": sales_whys_fields_complete,
+                "business_context_completeness": business_context_fields_complete,
                 "meddic_completeness": meddic_fields_complete,
-                "corporate_objectives_summary": three_whys.get("corporate_objectives", {}).get("summary", ""),
-                "domain_initiatives_summary": three_whys.get("domain_initiatives", {}).get("summary", ""),
-                "domain_challenges_summary": three_whys.get("domain_challenges", {}).get("summary", ""),
+                "why_anything_summary": sales_whys.get("why_anything", {}).get("summary", ""),
+                "why_now_summary": sales_whys.get("why_now", {}).get("summary", ""),
+                "why_us_summary": sales_whys.get("why_us", {}).get("summary", ""),
+                "corporate_objectives_summary": business_context.get("corporate_objectives", {}).get("summary", ""),
+                "domain_initiatives_summary": business_context.get("domain_initiatives", {}).get("summary", ""),
+                "domain_challenges_summary": business_context.get("domain_challenges", {}).get("summary", ""),
                 "meddic_metrics_summary": meddic.get("metrics", {}).get("summary", ""),
                 "meddic_economic_buyer_summary": meddic.get("economic_buyer", {}).get("summary", ""),
                 "meddic_decision_process_summary": meddic.get("decision_process", {}).get("summary", ""),
