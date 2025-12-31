@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 from typing import Dict, Any, Optional
 from nbm_analysis.utils.logging_utils import get_logger
+import os
 
 logger = get_logger(__name__)
 
@@ -16,15 +17,58 @@ class DatasetLogger:
 
         Args:
             dataset_name: Name of the dataset to write to (optional)
-                         Can be 'dataset_name' or 'PROJECT.dataset_name'
+                         If not provided or empty, will use 'audit_logs' by default
         """
-        self.dataset_name = dataset_name
-        self.enabled = dataset_name is not None and len(dataset_name.strip()) > 0
-
-        if self.enabled:
-            logger.info(f"Dataset logging enabled: {dataset_name}")
+        # Use 'audit_logs' as default if no dataset name provided
+        if not dataset_name or len(dataset_name.strip()) == 0:
+            self.dataset_name = "audit_logs"
+            logger.info("No dataset configured, using default: audit_logs")
         else:
-            logger.info("Dataset logging disabled (no dataset configured)")
+            self.dataset_name = dataset_name
+            logger.info(f"Dataset logging enabled: {dataset_name}")
+
+        self.enabled = True
+        self.project = None
+
+        # Try to get project handle (will be None in local dev)
+        try:
+            client = dataiku.api_client()
+            self.project = client.get_default_project()
+        except Exception as e:
+            logger.warning(f"Could not get Dataiku project (probably local dev): {e}")
+            self.enabled = False
+
+    def _ensure_dataset_exists(self) -> bool:
+        """Check if dataset exists, create it if it doesn't
+
+        Returns:
+            True if dataset exists or was created, False on error
+        """
+        if not self.project:
+            return False
+
+        try:
+            # Check if dataset exists
+            datasets = self.project.list_datasets()
+            dataset_exists = any(ds['name'] == self.dataset_name for ds in datasets)
+
+            if not dataset_exists:
+                logger.info(f"Dataset {self.dataset_name} does not exist, creating it...")
+
+                # Create a managed filesystem dataset
+                builder = self.project.new_managed_dataset(self.dataset_name)
+                builder.with_store_into("filesystem_managed")
+                dataset = builder.create()
+
+                logger.info(f"Created dataset {self.dataset_name}")
+                return True
+            else:
+                logger.info(f"Dataset {self.dataset_name} already exists")
+                return True
+
+        except Exception as e:
+            logger.error(f"Error checking/creating dataset: {e}", exc_info=True)
+            return False
 
     def log_analysis(
         self,
@@ -55,6 +99,12 @@ class DatasetLogger:
             True if logged successfully, False otherwise
         """
         if not self.enabled:
+            logger.info("Dataset logging disabled (not in Dataiku environment)")
+            return False
+
+        # Ensure dataset exists before trying to write
+        if not self._ensure_dataset_exists():
+            logger.error("Could not ensure dataset exists, skipping logging")
             return False
 
         try:

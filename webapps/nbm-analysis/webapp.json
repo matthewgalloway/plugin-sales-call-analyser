@@ -22,9 +22,9 @@
     },
     {
       "name": "results_dataset",
-      "label": "Results Dataset",
+      "label": "Results Dataset (Optional)",
       "type": "DATASET",
-      "description": "Dataset to log all analysis results (will be created if doesn't exist)",
+      "description": "Dataset to log analysis results. Leave empty to use default 'audit_logs' dataset (will be auto-created)",
       "mandatory": false
     },
     {
