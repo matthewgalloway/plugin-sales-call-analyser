@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, stream_with_context
 from datetime import datetime
 import os
+import json
 from nbm_analysis.utils.logging_utils import get_logger
 from nbm_analysis.utils.file_processor import FileProcessor
 from nbm_analysis.utils.dataset_logger import DatasetLogger
@@ -162,3 +163,117 @@ def generate_deal_review() -> Response:
     except Exception as e:
         logger.error(f"Unexpected error in deal review endpoint: {str(e)}")
         return jsonify({"error": "Deal review failed due to an unexpected error. Please try again."}), 500
+
+
+@analysis_blueprint.route("/analyze-stream", methods=["POST"])
+def analyze_transcript_stream() -> Response:
+    """API endpoint to analyze uploaded transcript with streaming updates"""
+
+    def generate():
+        try:
+            # Check if file is present
+            if 'file' not in request.files:
+                yield f"data: {json.dumps({'stage': 'error', 'error': 'No file provided'})}\n\n"
+                return
+
+            file = request.files['file']
+
+            # Validate file
+            is_valid, message = FileProcessor.validate_file(file)
+            if not is_valid:
+                logger.warning(f"File validation failed: {message}")
+                yield f"data: {json.dumps({'stage': 'error', 'error': message})}\n\n"
+                return
+
+            # Read file content
+            content = FileProcessor.read_file_content(file)
+            if not content:
+                logger.error(f"Could not read file content: {file.filename}")
+                yield f"data: {json.dumps({'stage': 'error', 'error': 'Could not read file content'})}\n\n"
+                return
+
+            # Stream analysis
+            start_time = datetime.now()
+            llm_client = SalesAnalysisLLM()
+
+            evidence_data = None
+            analysis_data = None
+
+            for update in llm_client.create_analysis_streamed(content):
+                # Send update to client
+                yield f"data: {json.dumps(update)}\n\n"
+
+                # Store data for logging
+                if update.get("stage") == "evidence" and update.get("status") == "complete":
+                    evidence_data = update.get("data", {})
+                elif update.get("stage") == "analysis" and update.get("status") == "complete":
+                    analysis_data = update.get("data", {})
+
+            # Log to dataset if we got complete data
+            if evidence_data and analysis_data:
+                processing_time = (datetime.now() - start_time).total_seconds()
+                dataset_logger.log_analysis(
+                    transcript_source=file.filename,
+                    evidence_registry=evidence_data.get("evidence_registry", {}),
+                    three_whys=analysis_data.get("three_whys", {}),
+                    meddic=analysis_data.get("meddic", {}),
+                    processing_time_seconds=processing_time,
+                    is_sample=False,
+                    llm_id=os.getenv('DATAIKU_LLM_ID')
+                )
+
+        except Exception as e:
+            logger.error(f"Unexpected error in streaming analysis: {str(e)}")
+            yield f"data: {json.dumps({'stage': 'error', 'error': str(e)})}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+
+@analysis_blueprint.route("/analyze-sample-stream", methods=["POST"])
+def analyze_sample_stream() -> Response:
+    """API endpoint to analyze sample transcript with streaming updates"""
+
+    def generate():
+        try:
+            # Load sample transcript
+            content = FileProcessor.load_sample_transcript()
+            if not content:
+                logger.error("Could not load sample transcript")
+                yield f"data: {json.dumps({'stage': 'error', 'error': 'Sample transcript not available'})}\n\n"
+                return
+
+            # Stream analysis
+            start_time = datetime.now()
+            llm_client = SalesAnalysisLLM()
+
+            evidence_data = None
+            analysis_data = None
+
+            for update in llm_client.create_analysis_streamed(content, user_email="sample_user"):
+                # Send update to client
+                yield f"data: {json.dumps(update)}\n\n"
+
+                # Store data for logging
+                if update.get("stage") == "evidence" and update.get("status") == "complete":
+                    evidence_data = update.get("data", {})
+                elif update.get("stage") == "analysis" and update.get("status") == "complete":
+                    analysis_data = update.get("data", {})
+
+            # Log to dataset if we got complete data
+            if evidence_data and analysis_data:
+                processing_time = (datetime.now() - start_time).total_seconds()
+                dataset_logger.log_analysis(
+                    transcript_source="sample_transcript",
+                    evidence_registry=evidence_data.get("evidence_registry", {}),
+                    three_whys=analysis_data.get("three_whys", {}),
+                    meddic=analysis_data.get("meddic", {}),
+                    processing_time_seconds=processing_time,
+                    is_sample=True,
+                    llm_id=os.getenv('DATAIKU_LLM_ID')
+                )
+
+        except Exception as e:
+            logger.error(f"Unexpected error in sample streaming analysis: {str(e)}")
+            yield f"data: {json.dumps({'stage': 'error', 'error': str(e)})}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')

@@ -1,8 +1,9 @@
 import dataiku
 import json
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Generator
 from collections import OrderedDict
+from dataikuapi.dss.llm import DSSLLMStreamedCompletionChunk, DSSLLMStreamedCompletionFooter
 from nbm_analysis.utils.logging_utils import get_logger
 from nbm_analysis.utils.json_utils import clean_json_response
 
@@ -57,6 +58,62 @@ class SalesAnalysisLLM:
         except Exception as e:
             logger.error(f"LLM completion failed: {str(e)}")
             raise
+
+    def create_analysis_streamed(self, transcript: str, user_email: str = None) -> Generator[Dict[str, Any], None, None]:
+        """Stream the complete analysis (evidence + frameworks) with progress updates
+
+        Args:
+            transcript: The call transcript text
+            user_email: Optional user email for logging
+
+        Yields:
+            Dictionary updates with stage, data, and optional error
+            Format: {"stage": "evidence|analysis", "data": {...}, "complete": bool}
+        """
+        try:
+            # Validate transcript
+            if len(transcript) > 50000:
+                yield {"stage": "error", "error": "Transcript too long", "complete": True}
+                return
+
+            if len(transcript.strip()) < 50:
+                yield {"stage": "error", "error": "Transcript too short", "complete": True}
+                return
+
+            # Stage 1: Evidence Registry
+            yield {"stage": "evidence", "status": "started", "complete": False}
+
+            evidence_result = self.create_evidence_registry(transcript, user_email)
+            if "error" in evidence_result:
+                yield {"stage": "error", "error": evidence_result["error"], "complete": True}
+                return
+
+            yield {
+                "stage": "evidence",
+                "data": evidence_result,
+                "status": "complete",
+                "complete": False
+            }
+
+            # Stage 2: Analysis (Three Whys + MEDDIC)
+            yield {"stage": "analysis", "status": "started", "complete": False}
+
+            analysis_result = self.create_analysis(evidence_result, user_email)
+            if "error" in analysis_result:
+                yield {"stage": "error", "error": analysis_result["error"], "complete": True}
+                return
+
+            # Final result
+            yield {
+                "stage": "analysis",
+                "data": analysis_result,
+                "status": "complete",
+                "complete": True
+            }
+
+        except Exception as e:
+            logger.error(f"Streaming analysis failed: {str(e)}")
+            yield {"stage": "error", "error": str(e), "complete": True}
 
     def create_evidence_registry(self, transcript: str, user_email: str = None) -> Dict[str, Any]:
         """Create comprehensive evidence registry from transcript

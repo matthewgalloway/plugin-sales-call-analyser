@@ -15,15 +15,48 @@ export const useAnalysisStore = defineStore('analysis', () => {
   async function analyzeFile(file: File) {
     isLoading.value = true
     error.value = null
-    progressMessage.value = 'Uploading and analyzing transcript...'
+    progressMessage.value = 'Uploading transcript...'
 
     try {
-      const result = await analysisAPI.analyzeTranscript(file)
-      currentAnalysis.value = result
-      currentTab.value = 'three-whys'
-      return result
+      let evidenceData: any = null
+      let analysisData: any = null
+
+      await analysisAPI.analyzeTranscriptStreamed(file, (update) => {
+        if (update.stage === 'error') {
+          error.value = update.error || 'Analysis failed'
+          return
+        }
+
+        if (update.stage === 'evidence') {
+          if (update.status === 'started') {
+            progressMessage.value = "Extracting evidence from transcript... Let's face it, this is still faster than you watching the whole discovery call, so be patient 😉"
+          } else if (update.status === 'complete' && update.data) {
+            evidenceData = update.data
+            progressMessage.value = 'Evidence extracted! Analyzing frameworks...'
+          }
+        } else if (update.stage === 'analysis') {
+          if (update.status === 'started') {
+            progressMessage.value = 'Analyzing Three Whys and MEDDIC frameworks... Almost there!'
+          } else if (update.status === 'complete' && update.data) {
+            analysisData = update.data
+            progressMessage.value = 'Analysis complete!'
+          }
+        }
+
+        // When complete, combine the results
+        if (update.complete && evidenceData && analysisData) {
+          currentAnalysis.value = {
+            ...evidenceData,
+            ...analysisData,
+            is_sample: false,
+          }
+          currentTab.value = 'three-whys'
+        }
+      })
+
+      return currentAnalysis.value
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Analysis failed. Please try again.'
+      error.value = err.message || 'Analysis failed. Please try again.'
       throw err
     } finally {
       isLoading.value = false
@@ -34,15 +67,48 @@ export const useAnalysisStore = defineStore('analysis', () => {
   async function analyzeSample() {
     isLoading.value = true
     error.value = null
-    progressMessage.value = 'Analyzing sample transcript...'
+    progressMessage.value = 'Loading sample transcript...'
 
     try {
-      const result = await analysisAPI.analyzeSample()
-      currentAnalysis.value = result
-      currentTab.value = 'three-whys'
-      return result
+      let evidenceData: any = null
+      let analysisData: any = null
+
+      await analysisAPI.analyzeSampleStreamed((update) => {
+        if (update.stage === 'error') {
+          error.value = update.error || 'Sample analysis failed'
+          return
+        }
+
+        if (update.stage === 'evidence') {
+          if (update.status === 'started') {
+            progressMessage.value = "Extracting evidence from sample... Let's face it, this is still faster than you watching the whole discovery call, so be patient 😉"
+          } else if (update.status === 'complete' && update.data) {
+            evidenceData = update.data
+            progressMessage.value = 'Evidence extracted! Analyzing frameworks...'
+          }
+        } else if (update.stage === 'analysis') {
+          if (update.status === 'started') {
+            progressMessage.value = 'Analyzing Three Whys and MEDDIC frameworks... Almost there!'
+          } else if (update.status === 'complete' && update.data) {
+            analysisData = update.data
+            progressMessage.value = 'Analysis complete!'
+          }
+        }
+
+        // When complete, combine the results
+        if (update.complete && evidenceData && analysisData) {
+          currentAnalysis.value = {
+            ...evidenceData,
+            ...analysisData,
+            is_sample: true,
+          }
+          currentTab.value = 'three-whys'
+        }
+      })
+
+      return currentAnalysis.value
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Sample analysis failed. Please try again.'
+      error.value = err.message || 'Sample analysis failed. Please try again.'
       throw err
     } finally {
       isLoading.value = false
