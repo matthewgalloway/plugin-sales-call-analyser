@@ -1,10 +1,16 @@
 """Logger for writing analysis results to Dataiku datasets"""
-import dataiku
 import pandas as pd
 from datetime import datetime
 from typing import Dict, Any, Optional
 from nbm_analysis.utils.logging_utils import get_logger
 import os
+
+# Conditionally import dataiku (not available in local dev)
+try:
+    import dataiku
+    DATAIKU_AVAILABLE = True
+except ImportError:
+    DATAIKU_AVAILABLE = False
 
 logger = get_logger(__name__)
 
@@ -29,6 +35,12 @@ class DatasetLogger:
 
         self.enabled = True
         self.project = None
+
+        # Check if dataiku is available
+        if not DATAIKU_AVAILABLE:
+            logger.info("Dataiku not available (local development mode)")
+            self.enabled = False
+            return
 
         # Try to get project handle (will be None in local dev)
         try:
@@ -166,7 +178,11 @@ class DatasetLogger:
 
             # Write to dataset
             logger.info(f"Getting dataset handle for: {self.dataset_name}")
-            dataset = dataiku.Dataset(self.dataset_name)
+            dataset = dataiku.Dataset(self.dataset_name, ignore_flow=True)
+
+            # Enable append mode to avoid overwriting
+            dataset.spec_item["appendMode"] = True
+            logger.info("Append mode enabled for dataset")
 
             # Create DataFrame
             df_new = pd.DataFrame([row])
@@ -183,7 +199,7 @@ class DatasetLogger:
 
                 # Dataset exists, append to it
                 logger.info("Appending to existing dataset...")
-                dataset.write_dataframe(df_new, infer_schema=False)
+                dataset.write_with_schema(df_new)
                 logger.info("Successfully appended to existing dataset")
 
             except Exception as read_err:
