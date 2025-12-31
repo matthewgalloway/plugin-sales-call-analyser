@@ -109,21 +109,26 @@ class DatasetLogger:
             # Create DataFrame
             df_new = pd.DataFrame([row])
             logger.info(f"Created DataFrame with shape: {df_new.shape}")
+            logger.info(f"DataFrame columns: {list(df_new.columns)}")
+            logger.info(f"DataFrame dtypes: {df_new.dtypes.to_dict()}")
 
-            # Try to append; if dataset doesn't exist or is empty, overwrite
+            # Try to read existing data and append, or create new if doesn't exist
             try:
-                logger.info("Attempting to read existing dataset...")
-                df_existing = dataset.get_dataframe()
-                logger.info(f"Existing dataset has {len(df_existing)} rows")
-                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-                logger.info(f"Combined dataframe has {len(df_combined)} rows")
-                dataset.write_with_schema(df_combined)
+                logger.info("Attempting to read existing dataset to check if it has data...")
+                # Use limit=1 to quickly check if dataset has schema
+                existing_df = dataset.get_dataframe(limit=1)
+                logger.info(f"Dataset exists with schema. Columns: {list(existing_df.columns)}")
+
+                # Dataset exists, append to it
+                logger.info("Appending to existing dataset...")
+                dataset.write_dataframe(df_new, infer_schema=False)
                 logger.info("Successfully appended to existing dataset")
-            except Exception as e:
-                # Dataset might not exist yet or be empty, create it
-                logger.info(f"Could not read existing dataset ({str(e)}), writing new dataset")
+
+            except Exception as read_err:
+                # Dataset doesn't have data yet, write with schema
+                logger.info(f"Dataset doesn't have data yet ({str(read_err)}). Writing with schema...")
                 dataset.write_with_schema(df_new)
-                logger.info("Successfully created new dataset")
+                logger.info("Successfully created dataset with schema")
 
             logger.info(f"Successfully logged analysis to dataset {self.dataset_name}")
             return True
