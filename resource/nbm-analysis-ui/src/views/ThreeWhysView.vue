@@ -19,7 +19,7 @@ const evidenceRegistry = computed(() => analysisStore.currentAnalysis?.evidence_
         </p>
       </div>
 
-      <div v-if="threeWhys" class="space-y-6">
+      <div v-if="threeWhys" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Why Anything? / Corporate Objectives -->
         <EvidenceCard
           title="Why Anything? - Corporate Objectives"
