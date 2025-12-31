@@ -16,6 +16,7 @@ class DatasetLogger:
 
         Args:
             dataset_name: Name of the dataset to write to (optional)
+                         Can be 'dataset_name' or 'PROJECT.dataset_name'
         """
         self.dataset_name = dataset_name
         self.enabled = dataset_name is not None and len(dataset_name.strip()) > 0
@@ -57,6 +58,8 @@ class DatasetLogger:
             return False
 
         try:
+            logger.info(f"Attempting to log analysis to dataset: {self.dataset_name}")
+
             # Calculate metrics
             num_evidence = len(evidence_registry.get("evidence_registry", {}))
 
@@ -97,24 +100,34 @@ class DatasetLogger:
                 "deal_review_confidence_note": deal_review.get("confidence_note", "") if deal_review else "",
             }
 
+            logger.info(f"Row prepared with {len(row)} fields")
+
             # Write to dataset
+            logger.info(f"Getting dataset handle for: {self.dataset_name}")
             dataset = dataiku.Dataset(self.dataset_name)
 
-            # Try to append; if dataset doesn't exist, create it
-            try:
-                df_existing = dataset.get_dataframe()
-                df_new = pd.DataFrame([row])
-                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-                dataset.write_with_schema(df_combined)
-            except Exception as e:
-                # Dataset might not exist yet, create it
-                logger.info(f"Creating new dataset {self.dataset_name}: {str(e)}")
-                df_new = pd.DataFrame([row])
-                dataset.write_with_schema(df_new)
+            # Create DataFrame
+            df_new = pd.DataFrame([row])
+            logger.info(f"Created DataFrame with shape: {df_new.shape}")
 
-            logger.info(f"Logged analysis to dataset {self.dataset_name}")
+            # Try to append; if dataset doesn't exist or is empty, overwrite
+            try:
+                logger.info("Attempting to read existing dataset...")
+                df_existing = dataset.get_dataframe()
+                logger.info(f"Existing dataset has {len(df_existing)} rows")
+                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+                logger.info(f"Combined dataframe has {len(df_combined)} rows")
+                dataset.write_with_schema(df_combined)
+                logger.info("Successfully appended to existing dataset")
+            except Exception as e:
+                # Dataset might not exist yet or be empty, create it
+                logger.info(f"Could not read existing dataset ({str(e)}), writing new dataset")
+                dataset.write_with_schema(df_new)
+                logger.info("Successfully created new dataset")
+
+            logger.info(f"Successfully logged analysis to dataset {self.dataset_name}")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to log analysis to dataset: {str(e)}")
+            logger.error(f"Failed to log analysis to dataset: {str(e)}", exc_info=True)
             return False

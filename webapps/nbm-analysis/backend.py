@@ -23,5 +23,8 @@ from nbm_analysis.utils.logging_utils import get_logger
 from nbm_analysis.app_setup import create_app
 
 logger = get_logger(__name__)
+logger.info(f"Webapp config - LLM ID: {llm_id}")
+logger.info(f"Webapp config - Results dataset: '{results_dataset}' (enabled: {bool(results_dataset)})")
+logger.info(f"Webapp config - Log level: {log_level}")
 
 create_app(app)
